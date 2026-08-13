@@ -138,7 +138,8 @@ class _MainDashboardState extends State<MainDashboard> {
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 12, top: 10, bottom: 10),
-            padding: const EdgeInsets.horizontal(12),
+            EdgeInsets.symmetric(horizontal: 16)
+            
             decoration: BoxDecoration(
               color: const Color(0xFF8B5CF6).withOpacity(0.2),
               borderRadius: BorderRadius.circular(20),
