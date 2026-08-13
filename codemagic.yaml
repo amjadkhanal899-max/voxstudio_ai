@@ -6,6 +6,9 @@ workflows:
     environment:
       flutter: stable
     scripts:
+      - name: Create Flutter Android Files
+        script: |
+          flutter create --platforms=android .
       - name: Get dependencies
         script: |
           flutter pub get
@@ -14,3 +17,4 @@ workflows:
           flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
+      
