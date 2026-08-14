@@ -6,9 +6,6 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: Set AdMob minSdk
-        script: |
-          echo "flutter.minSdkVersion=23" >> android/local.properties
       - name: Get dependencies
         script: |
           flutter pub get
