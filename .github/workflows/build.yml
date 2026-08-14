@@ -22,12 +22,21 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Re-create Android files
+      - name: Clean & Re-create Android files with V2 Embedding
         run: |
           rm -rf android
           flutter create --force --org com.voxstudio.app --platforms=android .
+          mkdir -p android/app/src/main/kotlin/com/voxstudio/app
+          cat <<'EOF' > android/app/src/main/kotlin/com/voxstudio/app/MainActivity.kt
+          package com.voxstudio.app
 
-      - name: Configure AndroidManifest for AdMob
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity: FlutterActivity() {
+          }
+          EOF
+
+      - name: Configure AndroidManifest for V2 Embedding & AdMob
         run: |
           cat <<'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -36,6 +45,9 @@ jobs:
                   android:label="VoxStudio AI"
                   android:name="${applicationName}"
                   android:icon="@mipmap/ic_launcher">
+                  <meta-data
+                      android:name="flutterEmbedding"
+                      android:value="2" />
                   <meta-data
                       android:name="com.google.android.gms.ads.APPLICATION_ID"
                       android:value="ca-app-pub-3940256099942544~3347511713"/>
@@ -49,4 +61,33 @@ jobs:
                       android:windowSoftInputMode="adjustResize">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+      - name: Set minSdkVersion in Gradle
+        run: |
+          python3 -c "
+          import os, glob
+          for path in glob.glob('android/app/build.gradle*'):
+              with open(path, 'r') as f:
+                  content = f.read()
+              content = content.replace('flutter.minSdkVersion', '21')
+              with open(path, 'w') as f:
+                  f.write(content)
+          "
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
