@@ -6,6 +6,11 @@ workflows:
     environment:
       flutter: stable
     scripts:
+      - name: Recreate Android Folder
+        script: |
+          rm -rf android
+          flutter create . --platforms=android --project-name voxstudio_ai --org com.example
+          echo "flutter.minSdkVersion=23" >> android/local.properties
       - name: Build APK
         script: |
           flutter clean
