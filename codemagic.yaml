@@ -1,49 +1,23 @@
 workflows:
   android-workflow:
-    name: VoxStudio AI APK Build
+    name: Android Workflow
     max_build_duration: 60
-    instance_type: mac_mini_m1
+    instance_type: mac_mini_m2
     environment:
       flutter: stable
     scripts:
-      - name: Re-create Android Folder Cleanly
+      - name: Create Android Folder
         script: |
           rm -rf android
-          flutter create --org com.voxstudio.app --platforms=android .
-      - name: Configure AndroidManifest for AdMob
+          flutter create . --platforms=android --project-name voxstudio_ai
+      - name: Set AdMob to work
         script: |
-          cat <<'EOF' > android/app/src/main/AndroidManifest.xml
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <uses-permission android:name="android.permission.INTERNET"/>
-              <application
-                  android:label="VoxStudio AI"
-                  android:name="${applicationName}"
-                  android:icon="@mipmap/ic_launcher">
-                  <meta-data
-                      android:name="com.google.android.gms.ads.APPLICATION_ID"
-                      android:value="ca-app-pub-3940256099942544~3347511713"/>
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true"
-                      android:launchMode="singleTop"
-                      android:theme="@style/LaunchTheme"
-                      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-                      android:hardwareAccelerated="true"
-                      android:windowSoftInputMode="adjustResize">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.LAUNCHER"/>
-                      </intent-filter>
-                  </activity>
-              </application>
-          </manifest>
-          EOF
-      - name: Clean and Get Dependencies
+          echo "flutter.minSdkVersion=23" >> android/local.properties
+          echo "flutter.minSdkVersion=23" > /tmp/fix
+          sed -i '' 's/minSdk.*/minSdk 23/' android/app/build.gradle 2>/dev/null || sed -i 's/minSdk.*/minSdk 23/' android/app/build.gradle
+      - name: Build
         script: |
-          flutter clean
           flutter pub get
-      - name: Build APK
-        script: |
           flutter build apk --release
     artifacts:
-      - build/app/outputs/flutter-apk/*.apk
+      - build/**/outputs/**/*.apk
