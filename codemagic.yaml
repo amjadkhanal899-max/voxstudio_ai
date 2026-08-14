@@ -6,13 +6,11 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: Create Fresh Flutter Android Project with v2 Embedding
+      - name: Create Android Project
         script: |
-          # Clean old files if present
           rm -rf android
-          # Create fresh android folder with java/kotlin v2 embedding
           flutter create --org com.voxstudio.app --platforms=android .
-      - name: Configure AndroidManifest and AdMob
+      - name: Inject AdMob & Settings
         script: |
           cat <<'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -40,14 +38,11 @@ workflows:
               </application>
           </manifest>
           EOF
-      - name: Fix minSdkVersion for AdMob
-        script: |
-          sed -i '' 's/minSdkVersion.*/minSdkVersion 21/' android/app/build.gradle || sed -i 's/minSdkVersion.*/minSdkVersion 21/' android/app/build.gradle
       - name: Get dependencies
         script: |
           flutter pub get
       - name: Build APK
         script: |
-          flutter build apk --release
+          flutter build apk --release --min-sdk=21
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
