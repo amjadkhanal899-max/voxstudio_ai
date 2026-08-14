@@ -6,17 +6,9 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: Create Android Folder
+      - name: Build APK
         script: |
-          rm -rf android
-          flutter create . --platforms=android --project-name voxstudio_ai
-      - name: Set AdMob to work
-        script: |
-          echo "flutter.minSdkVersion=23" >> android/local.properties
-          echo "flutter.minSdkVersion=23" > /tmp/fix
-          sed -i '' 's/minSdk.*/minSdk 23/' android/app/build.gradle 2>/dev/null || sed -i 's/minSdk.*/minSdk 23/' android/app/build.gradle
-      - name: Build
-        script: |
+          flutter clean
           flutter pub get
           flutter build apk --release
     artifacts:
