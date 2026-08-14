@@ -40,14 +40,18 @@ workflows:
           </manifest>
           EOF
 
-          # Set minSdkVersion 21 in build.gradle safely using Python
+          # Smart Python script checking both gradle and gradle.kts
           python3 -c "
-          path = 'android/app/build.gradle'
-          with open(path, 'r') as f:
-              content = f.read()
-          content = content.replace('flutter.minSdkVersion', '21')
-          with open(path, 'w') as f:
-              f.write(content)
+          import os
+          files = ['android/app/build.gradle', 'android/app/build.gradle.kts']
+          for path in files:
+              if os.path.exists(path):
+                  with open(path, 'r') as f:
+                      content = f.read()
+                  content = content.replace('flutter.minSdkVersion', '21')
+                  with open(path, 'w') as f:
+                      f.write(content)
+                  print(f'Successfully updated {path}')
           "
       - name: Get Dependencies
         script: |
