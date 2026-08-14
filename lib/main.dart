@@ -1,6 +1,4 @@
-
-                
- import 'dart:math' as math;
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 void main() => runApp(const VoxStudioApp());
@@ -30,7 +28,6 @@ class VoxStudioApp extends StatelessWidget {
   }
 }
 
-// ================= SPLASH SCREEN =================
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
   @override
@@ -107,7 +104,6 @@ class AtomicOrbitPainter extends CustomPainter {
   bool shouldRepaint(covariant AtomicOrbitPainter old) => true;
 }
 
-// ================= MAIN DASHBOARD =================
 class MainDashboard extends StatefulWidget {
   const MainDashboard({super.key});
   @override
@@ -149,7 +145,6 @@ class _MainDashboardState extends State<MainDashboard> {
   }
 }
 
-// ================= TABS (FIXED EdgeInsets bug) =================
 class ShortsEngineTab extends StatefulWidget {
   const ShortsEngineTab({super.key});
   @override
@@ -186,13 +181,13 @@ class _ShortsEngineTabState extends State<ShortsEngineTab> {
       const SizedBox(height: 8),
       SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: ["MrBeast", "Hormozi", "Ali Abdaal", "Neon Podcast", "Joe Rogan"].map((s) {
         final isSel = selectedStyle == s;
-        return Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(label: Text(s), selected: isSel, onSelected: (_) => setState(() => selectedStyle = s), selectedColor: const Color(0xFF00E5CC), labelStyle: TextStyle(color: isSel ? Colors.black : Colors.white, fontWeight: FontWeight.bold)));
+        return Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(label: Text(s), selected: isSel, onSelected: (_) => setState(() => selectedStyle = s), selectedColor: const Color(0xFF00E5CC), labelStyle: TextStyle(color: isSel? Colors.black : Colors.white, fontWeight: FontWeight.bold)));
       }).toList())),
       const SizedBox(height: 16),
-      FilledButton.icon(onPressed: isGenerating ? null : startGen, icon: const Icon(Icons.bolt), label: Text(isGenerating ? "GENERATING ${(progress * 100).toInt()}% • Fast Mode" : "⚡ FAST GENERATE VIRAL SHORTS"), style: FilledButton.styleFrom(backgroundColor: const Color(0xFF00E5CC), foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 56))),
-      if (isGenerating) ...[const SizedBox(height: 12), LinearProgressIndicator(value: progress, color: const Color(0xFF00E5CC))],
+      FilledButton.icon(onPressed: isGenerating? null : startGen, icon: const Icon(Icons.bolt), label: Text(isGenerating? "GENERATING ${(progress * 100).toInt()}% • Fast Mode" : "⚡ FAST GENERATE VIRAL SHORTS"), style: FilledButton.styleFrom(backgroundColor: const Color(0xFF00E5CC), foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 56))),
+      if (isGenerating)...[const SizedBox(height: 12), LinearProgressIndicator(value: progress, color: const Color(0xFF00E5CC))],
       const SizedBox(height: 16),
-      _NeonCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Row(children: [Icon(Icons.auto_awesome, size: 16, color: Color(0xFF7B61FF)), SizedBox(width: 6), Text("AI Highlight Detection")]), SizedBox(height: 12), _WaveformPlaceholder()])),
+      const _NeonCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Icon(Icons.auto_awesome, size: 16, color: Color(0xFF7B61FF)), SizedBox(width: 6), Text("AI Highlight Detection")]), SizedBox(height: 12), _WaveformPlaceholder()])),
     ]);
   }
 }
@@ -214,7 +209,7 @@ class _DownloaderTabState extends State<DownloaderTab> {
       _NeonCard(child: Column(children: [
         TextField(controller: controller, decoration: _inputDeco("Paste ANY video link...", Icons.download), maxLines: 2),
         const SizedBox(height: 12),
-        Row(children: ["Video 4K", "Audio MP3", "Captions SRT"].map((t) => Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(label: Text(t), selected: type == t, onSelected: (_) => setState(() => type = t), selectedColor: const Color(0xFF7B61FF)))) .toList()),
+        Row(children: ["Video 4K", "Audio MP3", "Captions SRT"].map((t) => Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(label: Text(t), selected: type == t, onSelected: (_) => setState(() => type = t), selectedColor: const Color(0xFF7B61FF)))).toList()),
         const SizedBox(height: 12),
         FilledButton.icon(onPressed: () {}, icon: const Icon(Icons.download), label: const Text("FETCH & DOWNLOAD"), style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7B61FF), minimumSize: const Size(double.infinity, 52))),
       ])),
@@ -297,7 +292,6 @@ class ProUpgradeSheet extends StatelessWidget {
   }
 }
 
-// ================= HELPERS (BUG FIXED) =================
 InputDecoration _inputDeco(String hint, IconData icon) => InputDecoration(
       hintText: hint,
       prefixIcon: Icon(icon, size: 20),
@@ -307,4 +301,60 @@ InputDecoration _inputDeco(String hint, IconData icon) => InputDecoration(
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
     );
 
-class _NeonC
+class _NeonCard extends StatelessWidget {
+  final Widget child;
+  const _NeonCard({required this.child});
+  @override
+  Widget build(BuildContext context) {
+    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF141423), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withOpacity(0.06))), child: child);
+  }
+}
+
+class _ActionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _ActionChip({required this.icon, required this.label});
+  @override
+  Widget build(BuildContext context) {
+    return Chip(avatar: Icon(icon, size: 16), label: Text(label, style: const TextStyle(fontSize: 12)), backgroundColor: const Color(0xFF1E1E32), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2));
+  }
+}
+
+class _PlatformTile extends StatelessWidget {
+  final String name;
+  final IconData icon;
+  final Color color;
+  const _PlatformTile(this.name, this.icon, this.color);
+  @override
+  Widget build(BuildContext context) {
+    return Container(decoration: BoxDecoration(color: const Color(0xFF141423), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.3))), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: color, size: 28), const SizedBox(height: 6), Text(name, style: const TextStyle(fontWeight: FontWeight.bold))]));
+  }
+}
+
+class _ChannelRow extends StatelessWidget {
+  final String name;
+  final bool connected;
+  const _ChannelRow(this.name, this.connected);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [Icon(name == "YouTube"? Icons.play_circle : name == "Instagram"? Icons.camera_alt : Icons.music_note, size: 18), const SizedBox(width: 8), Text(name), const Spacer(), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: connected? const Color(0xFF00E5CC).withOpacity(0.15) : Colors.white10, borderRadius: BorderRadius.circular(12)), child: Text(connected? "Connected" : "Not Connected", style: TextStyle(fontSize: 10, color: connected? const Color(0xFF00E5CC) : Colors.white38)))]));
+  }
+}
+
+class _StatBox extends StatelessWidget {
+  final String label;
+  final String value;
+  const _StatBox(this.label, this.value);
+  @override
+  Widget build(BuildContext context) {
+    return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(fontSize: 10, color: Colors.white38)), Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))]));
+  }
+}
+
+class _WaveformPlaceholder extends StatelessWidget {
+  const _WaveformPlaceholder();
+  @override
+  Widget build(BuildContext context) {
+    return Container(height: 60, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: List.generate(20, (i) => Container(width: 4, height: 10 + (i % 5) * 8.0, color: i % 3 == 0? const Color(0xFF00E5CC) : Colors.white24))));
+  }
+}
