@@ -5,18 +5,46 @@ workflows:
     instance_type: mac_mini_m1
     environment:
       flutter: stable
-      java: 17
     scripts:
-      - name: Create Flutter Android Files
+      - name: Create Android project files if missing
         script: |
-          flutter create --platforms=android --org=com.voxstudio.ai .
+          flutter create . --platforms=android
+      - name: Set minSdkVersion and AdMob configuration
+        script: |
+          # Create or update AndroidManifest with AdMob App ID
+          cat <<EOF > android/app/src/main/AndroidManifest.xml
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application
+                  android:label="VoxStudio AI"
+                  android:name="\${applicationName}"
+                  android:icon="@mipmap/ic_launcher">
+                  <meta-data
+                      android:name="com.google.android.gms.ads.APPLICATION_ID"
+                      android:value="ca-app-pub-3940256099942544~3347511713"/>
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTop"
+                      android:theme="@style/LaunchTheme"
+                      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                      android:hardwareAccelerated="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          
+          # Ensure minSdkVersion is set to 21
+          sed -i '' 's/minSdkVersion.*/minSdkVersion 21/' android/app/build.gradle || true
       - name: Get dependencies
         script: |
           flutter pub get
       - name: Build APK
         script: |
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
-
-      
