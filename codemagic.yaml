@@ -6,17 +6,17 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: Create Android project files if missing
+      - name: Create fresh Android project structure
         script: |
-          flutter create . --platforms=android
-      - name: Set minSdkVersion and AdMob configuration
+          flutter create --org com.example --platforms=android .
+      - name: Configure AndroidManifest for AdMob and Permissions
         script: |
-          # Create or update AndroidManifest with AdMob App ID
-          cat <<EOF > android/app/src/main/AndroidManifest.xml
+          cat <<'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET"/>
               <application
                   android:label="VoxStudio AI"
-                  android:name="\${applicationName}"
+                  android:name="${applicationName}"
                   android:icon="@mipmap/ic_launcher">
                   <meta-data
                       android:name="com.google.android.gms.ads.APPLICATION_ID"
@@ -37,9 +37,6 @@ workflows:
               </application>
           </manifest>
           EOF
-          
-          # Ensure minSdkVersion is set to 21
-          sed -i '' 's/minSdkVersion.*/minSdkVersion 21/' android/app/build.gradle || true
       - name: Get dependencies
         script: |
           flutter pub get
