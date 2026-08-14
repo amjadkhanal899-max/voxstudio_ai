@@ -1,18 +1,26 @@
 workflows:
   android-workflow:
-    name: VoxStudio AI APK Build
-    max_build_duration: 60
+    name: Build Android APK
+    max_build_duration: 30
     instance_type: mac_mini_m1
-    environment:
-      flutter: stable
-      java: 17
     scripts:
-      - name: Create Android Project & Set AdMob / MinSDK
+      - name: Set up Flutter
+        script: |
+          flutter channel stable
+          flutter upgrade
+      - name: Create Android Project Structure & Fix V2 Embedding
         script: |
           rm -rf android
-          flutter create --org com.voxstudio.app --platforms=android --no-pub .
-          
-          # AndroidManifest.xml setup
+          flutter create --force --org com.voxstudio.app --platforms=android .
+          mkdir -p android/app/src/main/kotlin/com/voxstudio/app
+          cat <<'EOF' > android/app/src/main/kotlin/com/voxstudio/app/MainActivity.kt
+          package com.voxstudio.app
+
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity: FlutterActivity() {
+          }
+          EOF
           cat <<'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
@@ -20,6 +28,9 @@ workflows:
                   android:label="VoxStudio AI"
                   android:name="${applicationName}"
                   android:icon="@mipmap/ic_launcher">
+                  <meta-data
+                      android:name="flutterEmbedding"
+                      android:value="2" />
                   <meta-data
                       android:name="com.google.android.gms.ads.APPLICATION_ID"
                       android:value="ca-app-pub-3940256099942544~3347511713"/>
@@ -39,25 +50,18 @@ workflows:
               </application>
           </manifest>
           EOF
-
-          # Smart Python script checking both gradle and gradle.kts
           python3 -c "
-          import os
-          files = ['android/app/build.gradle', 'android/app/build.gradle.kts']
-          for path in files:
-              if os.path.exists(path):
-                  with open(path, 'r') as f:
-                      content = f.read()
-                  content = content.replace('flutter.minSdkVersion', '21')
-                  with open(path, 'w') as f:
-                      f.write(content)
-                  print(f'Successfully updated {path}')
+          import os, glob
+          for path in glob.glob('android/app/build.gradle*'):
+              with open(path, 'r') as f: content = f.read()
+              content = content.replace('flutter.minSdkVersion', '21')
+              with open(path, 'w') as f: f.write(content)
           "
       - name: Get Dependencies
         script: |
           flutter pub get
       - name: Build APK Release
         script: |
-          flutter build apk --release
+          flutter build apk --release --no-tree-shake-icons
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
