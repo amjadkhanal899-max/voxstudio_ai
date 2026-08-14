@@ -20,13 +20,12 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
           channel: 'stable'
 
-      - name: Re-create Android project
+      - name: Re-create Android files
         run: |
           rm -rf android
-          flutter create --org com.voxstudio.app --platforms=android --no-pub .
+          flutter create --force --org com.voxstudio.app --platforms=android .
 
       - name: Configure AndroidManifest for AdMob
         run: |
@@ -50,32 +49,4 @@ jobs:
                       android:windowSoftInputMode="adjustResize">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.LAUNCHER"/>
-                      </intent-filter>
-                  </activity>
-              </application>
-          </manifest>
-          EOF
-
-      - name: Fix minSdkVersion for AdMob
-        run: |
-          python3 -c "
-          import os
-          for p in ['android/app/build.gradle', 'android/app/build.gradle.kts']:
-              if os.path.exists(p):
-                  with open(p, 'r') as f: c = f.read()
-                  c = c.replace('flutter.minSdkVersion', '21')
-                  with open(p, 'w') as f: f.write(c)
-          "
-
-      - name: Get Dependencies
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk --release
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+                          <category android:name="android.intent.category.
