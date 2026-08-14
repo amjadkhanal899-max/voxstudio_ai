@@ -1,18 +1,59 @@
-name: voxstudio_ai
-description: VoxStudio AI
-publish_to: 'none'
-version: 1.0.0+3
+workflows:
+  android-workflow:
+    name: VoxStudio AI APK Build
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      java: 17
+    scripts:
+      - name: Create Android Project & Set AdMob / MinSDK
+        script: |
+          rm -rf android
+          flutter create --org com.voxstudio.app --platforms=android --no-pub .
+          
+          # AndroidManifest.xml setup
+          cat <<'EOF' > android/app/src/main/AndroidManifest.xml
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <application
+                  android:label="VoxStudio AI"
+                  android:name="${applicationName}"
+                  android:icon="@mipmap/ic_launcher">
+                  <meta-data
+                      android:name="com.google.android.gms.ads.APPLICATION_ID"
+                      android:value="ca-app-pub-3940256099942544~3347511713"/>
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTop"
+                      android:theme="@style/LaunchTheme"
+                      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                      android:hardwareAccelerated="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
 
-environment:
-  sdk: ">=3.0.0 <4.0.0"
-
-dependencies:
-  flutter:
-    sdk: flutter
-  google_mobile_ads: 3.1.0
-  google_generative_ai: ^0.4.6
-  file_picker: ^8.1.0
-  cupertino_icons: ^1.0.6
-
-flutter:
-  uses-material-design: true
+          # Set minSdkVersion 21 in build.gradle safely using Python
+          python3 -c "
+          path = 'android/app/build.gradle'
+          with open(path, 'r') as f:
+              content = f.read()
+          content = content.replace('flutter.minSdkVersion', '21')
+          with open(path, 'w') as f:
+              f.write(content)
+          "
+      - name: Get Dependencies
+        script: |
+          flutter pub get
+      - name: Build APK Release
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
