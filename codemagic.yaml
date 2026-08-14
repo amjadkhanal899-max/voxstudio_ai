@@ -1,20 +1,18 @@
-workflows:
-  android-workflow:
-    name: Android Workflow
-    max_build_duration: 60
-    instance_type: mac_mini_m2
-    environment:
-      flutter: stable
-    scripts:
-      - name: Recreate Android Folder
-        script: |
-          rm -rf android
-          flutter create . --platforms=android --project-name voxstudio_ai --org com.example
-          echo "flutter.minSdkVersion=23" >> android/local.properties
-      - name: Build APK
-        script: |
-          flutter clean
-          flutter pub get
-          flutter build apk --release
-    artifacts:
-      - build/**/outputs/**/*.apk
+name: voxstudio_ai
+description: VoxStudio AI
+publish_to: 'none'
+version: 1.0.0+3
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_mobile_ads: 3.1.0
+  google_generative_ai: ^0.4.6
+  file_picker: ^8.1.0
+  cupertino_icons: ^1.0.6
+
+flutter:
+  uses-material-design: true
