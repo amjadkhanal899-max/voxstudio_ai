@@ -22,7 +22,7 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Clean & Re-create Android files with V2 Embedding
+      - name: Re-create Android folder & V2 Embedding
         run: |
           rm -rf android
           flutter create --force --org com.voxstudio.app --platforms=android .
@@ -36,7 +36,7 @@ jobs:
           }
           EOF
 
-      - name: Configure AndroidManifest for V2 Embedding & AdMob
+      - name: Configure AndroidManifest for AdMob & V2
         run: |
           cat <<'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -68,14 +68,15 @@ jobs:
           </manifest>
           EOF
 
-      - name: Set minSdkVersion in Gradle
+      - name: Fix minSdkVersion 21 for Gradle
         run: |
           python3 -c "
-          import os, glob
+          import re, glob
           for path in glob.glob('android/app/build.gradle*'):
               with open(path, 'r') as f:
                   content = f.read()
-              content = content.replace('flutter.minSdkVersion', '21')
+              content = re.sub(r'minSdk\s*=.*', 'minSdk = 21', content)
+              content = re.sub(r'minSdkVersion\s+.*', 'minSdkVersion 21', content)
               with open(path, 'w') as f:
                   f.write(content)
           "
@@ -83,10 +84,10 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
-      - name: Build APK
+      - name: Build APK Release
         run: flutter build apk --release --no-tree-shake-icons
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
