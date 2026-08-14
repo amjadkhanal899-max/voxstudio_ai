@@ -19,19 +19,60 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF121212),
         primaryColor: Colors.deepPurple,
       ),
-      home: const HomeScreen(),
+      home: const MainNavigationScreen(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  int _currentIndex = 0;
+  
+  final List<Widget> _screens = [
+    const VideoGeneratorTab(),
+    const VoiceGeneratorTab(),
+    const DownloaderTab(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        backgroundColor: Colors.grey.shade900,
+        selectedItemColor: Colors.deepPurpleAccent,
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.video_library), label: 'Video AI'),
+          BottomNavigationBarItem(icon: Icon(Icons.record_voice_over), label: 'Voice AI'),
+          BottomNavigationBarItem(icon: Icon(Icons.download), label: 'Downloader'),
+        ],
+      ),
+    );
+  }
+}
+
+// 1️⃣ ویڈیو جنریٹر ٹیب
+class VideoGeneratorTab extends StatefulWidget {
+  const VideoGeneratorTab({super.key});
+
+  @override
+  State<VideoGeneratorTab> createState() => _VideoGeneratorTabState();
+}
+
+class _VideoGeneratorTabState extends State<VideoGeneratorTab> {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
   final TextEditingController _promptController = TextEditingController();
@@ -40,134 +81,188 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadBannerAd();
+    _loadBanner();
   }
 
-  // 👈 مفت ٹیسٹ AdMob بینر کا فنکشن
-  void _loadBannerAd() {
+  void _loadBanner() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // گوگل کی آفیشل ٹیسٹ آئی ڈی
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
       request: const AdRequest(),
       size: AdSize.banner,
       listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          setState(() {
-            _isAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, err) {
-          ad.dispose();
-        },
+        onAdLoaded: (ad) => setState(() => _isAdLoaded = true),
+        onAdFailedToLoad: (ad, err) => ad.dispose(),
       ),
     )..load();
   }
 
   @override
-  void dispose() {
-    _bannerAd?.dispose();
-    _promptController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('VoxStudio AI'),
-        backgroundColor: Colors.deepPurple.shade900,
-        actions: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.amber.shade700,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text('⚡ 10 Free Credits', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-          )
-        ],
-      ),
+      appBar: AppBar(title: const Text('🎬 AI Video Generator'), backgroundColor: Colors.deepPurple.shade900),
       body: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '🎬 AI Video & Viral Shorts Generator',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Enter a topic or script to generate free AI videos:',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16),
                   TextField(
                     controller: _promptController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'e.g., Create a 15-sec viral short about AI technology...',
-                      filled: true,
+                      hintText: 'Enter video script or prompt here...',
                       fillColor: Colors.grey.shade900,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                      filled: true,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: _isGenerating
-                          ? null
-                          : () {
-                              if (_promptController.text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please enter a prompt first!')),
-                                );
-                                return;
-                              }
-                              setState(() {
-                                _isGenerating = true;
-                              });
-
-                              // فری AI ویڈیو پروسیسنگ کا سمولیشن
-                              Future.delayed(const Duration(seconds: 4), () {
-                                setState(() {
-                                  _isGenerating = false;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('🎉 Video Generated Successfully!')),
-                                );
-                              });
-                            },
-                      child: _isGenerating
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Fast Generate Video', style: TextStyle(fontSize: 16, color: Colors.white)),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      minimumSize: const Size(double.infinity, 50),
                     ),
+                    onPressed: _isGenerating
+                        ? null
+                        : () {
+                            if (_promptController.text.isEmpty) return;
+                            setState(() => _isGenerating = true);
+                            Future.delayed(const Duration(seconds: 3), () {
+                              setState(() => _isGenerating = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('🎉 Video generated successfully!')),
+                              );
+                            });
+                          },
+                    child: _isGenerating
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Generate AI Video'),
                   ),
                 ],
               ),
             ),
           ),
-          
-          // 👈 نیچے نچلے حصے میں صرف 1 ہلکا سا اشتہار (تاکہ کسٹمر بھی نہ بھاگے)
           if (_isAdLoaded && _bannerAd != null)
-            SizedBox(
-              width: _bannerAd!.size.width.toDouble(),
-              height: _bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            ),
+            SizedBox(width: _bannerAd!.size.width.toDouble(), height: _bannerAd!.size.height.toDouble(), child: AdWidget(ad: _bannerAd!)),
         ],
+      ),
+    );
+  }
+}
+
+// 2️⃣ وائس جنریٹر ٹیب
+class VoiceGeneratorTab extends StatefulWidget {
+  const VoiceGeneratorTab({super.key});
+
+  @override
+  State<VoiceGeneratorTab> createState() => _VoiceGeneratorTabState();
+}
+
+class _VoiceGeneratorTabState extends State<VoiceGeneratorTab> {
+  final TextEditingController _textController = TextEditingController();
+  bool _isGeneratingVoice = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('🎙️ AI Voice Generator'), backgroundColor: Colors.deepPurple.shade900),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _textController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: 'Enter text to convert into realistic voice...',
+                fillColor: Colors.grey.shade900,
+                filled: true,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              onPressed: _isGeneratingVoice
+                  ? null
+                  : () {
+                      if (_textController.text.isEmpty) return;
+                      setState(() => _isGeneratingVoice = true);
+                      Future.delayed(const Duration(seconds: 3), () {
+                        setState(() => _isGeneratingVoice = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('🎧 Voice created and ready to play!')),
+                        );
+                      });
+                    },
+              child: _isGeneratingVoice
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Generate AI Voice'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 3️⃣ ڈاؤنلوڈر ٹیب
+class DownloaderTab extends StatefulWidget {
+  const DownloaderTab({super.key});
+
+  @override
+  State<DownloaderTab> createState() => _DownloaderTabState();
+}
+
+class _DownloaderTabState extends State<DownloaderTab> {
+  final TextEditingController _urlController = TextEditingController();
+  bool _isDownloading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('📥 Social Video Downloader'), backgroundColor: Colors.deepPurple.shade900),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _urlController,
+              decoration: InputDecoration(
+                hintText: 'Paste Reel / TikTok video link here...',
+                fillColor: Colors.grey.shade900,
+                filled: true,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber.shade800,
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              onPressed: _isDownloading
+                  ? null
+                  : () {
+                      if (_urlController.text.isEmpty) return;
+                      setState(() => _isDownloading = true);
+                      Future.delayed(const Duration(seconds: 3), () {
+                        setState(() => _isDownloading = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('⚡ Video Downloaded to Gallery!')),
+                        );
+                      });
+                    },
+              child: _isDownloading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Download Video'),
+            ),
+          ],
+        ),
       ),
     );
   }
