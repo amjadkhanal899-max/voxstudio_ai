@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Set up Java 17
@@ -22,16 +22,14 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.19.6'
           channel: 'stable'
 
-      - name: Re-create Clean Android Structure
+      - name: Fix Android Project Setup
         run: |
           rm -rf android
           flutter create --platforms=android --org com.voxstudio.app .
-
-      - name: Inject Android Code & AdMob Config
-        run: |
-          # 1. Create Kotlin MainActivity
+          
           mkdir -p android/app/src/main/kotlin/com/voxstudio/app
           cat << 'EOF' > android/app/src/main/kotlin/com/voxstudio/app/MainActivity.kt
           package com.voxstudio.app
@@ -42,7 +40,6 @@ jobs:
           }
           EOF
 
-          # 2. Create AndroidManifest with AdMob App ID & V2 Embedding
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
@@ -73,21 +70,15 @@ jobs:
           </manifest>
           EOF
 
-          # 3. Force MinSDK 21 in local.properties & build.gradle
           echo "flutter.minSdkVersion=21" >> android/local.properties
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
-          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
 
-          # 4. Make gradlew executable
-          chmod +x android/gradlew || true
-
-      - name: Fetch Flutter Dependencies
+      - name: Get Flutter Packages
         run: flutter pub get
 
-      - name: Build Android APK Release
-        run: flutter build apk --release --no-tree-shake-icons
+      - name: Build APK (Release)
+        run: flutter build apk --release --no-tree-shake-icons --no-pub
 
-      - name: Save & Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
