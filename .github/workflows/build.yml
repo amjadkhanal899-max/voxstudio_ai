@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -24,14 +24,14 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Clean & Create Android Project
+      - name: Re-create Clean Android Structure
         run: |
           rm -rf android
           flutter create --platforms=android --org com.voxstudio.app .
 
-      - name: Configure AndroidManifest & App Settings
+      - name: Inject Android Code & AdMob Config
         run: |
-          # Inject MainActivity
+          # 1. Create Kotlin MainActivity
           mkdir -p android/app/src/main/kotlin/com/voxstudio/app
           cat << 'EOF' > android/app/src/main/kotlin/com/voxstudio/app/MainActivity.kt
           package com.voxstudio.app
@@ -42,7 +42,7 @@ jobs:
           }
           EOF
 
-          # Inject AndroidManifest.xml
+          # 2. Create AndroidManifest with AdMob App ID & V2 Embedding
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
@@ -73,18 +73,21 @@ jobs:
           </manifest>
           EOF
 
-          # Enable MultiDex & set MinSDK 21 in build.gradle
+          # 3. Force MinSDK 21 in local.properties & build.gradle
+          echo "flutter.minSdkVersion=21" >> android/local.properties
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
           sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
-          sed -i '/defaultConfig {/a \        multiDexEnabled true' android/app/build.gradle || true
 
-      - name: Get Flutter Dependencies
+          # 4. Make gradlew executable
+          chmod +x android/gradlew || true
+
+      - name: Fetch Flutter Dependencies
         run: flutter pub get
 
-      - name: Build Release APK
+      - name: Build Android APK Release
         run: flutter build apk --release --no-tree-shake-icons
 
-      - name: Upload Build Artifact
+      - name: Save & Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
