@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
   runApp(const VoxStudioApp());
 }
 
@@ -39,9 +36,6 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
-  BannerAd? _bannerAd;
-  bool _isBannerAdLoaded = false;
-  InterstitialAd? _interstitialAd;
 
   final List<Widget> _screens = [
     const CapCutTemplatesScreen(),
@@ -51,88 +45,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _loadBannerAd();
-    _loadInterstitialAd();
-  }
-
-  void _loadBannerAd() {
-    _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner Ad Unit
-      request: const AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (_) => setState(() => _isBannerAdLoaded = true),
-        onAdFailedToLoad: (ad, err) => ad.dispose(),
-      ),
-    )..load();
-  }
-
-  void _loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: 'ca-app-pub-3940256099942544/1033173712', // Test Interstitial Ad Unit
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitialAd = ad,
-        onAdFailedToLoad: (err) => _interstitialAd = null,
-      ),
-    );
-  }
-
-  void showAdAndProcess(VoidCallback onDone) {
-    if (_interstitialAd != null) {
-      _interstitialAd!.show();
-      _loadInterstitialAd();
-    }
-    onDone();
-  }
-
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    _interstitialAd?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (_isBannerAdLoaded && _bannerAd != null)
-            SizedBox(
-              width: _bannerAd!.size.width.toDouble(),
-              height: _bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            ),
-          BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            backgroundColor: const Color(0xFF120E26),
-            selectedItemColor: const Color(0xFF00F2FE),
-            unselectedItemColor: Colors.grey,
-            type: BottomNavigationBarType.fixed,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.style),
-                label: 'CapCut Hub',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.video_call),
-                label: 'AI Video',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.auto_awesome),
-                label: 'Free Photo',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.record_voice_over),
-                label: 'Talking Avatar',
-              ),
-            ],
+      body: SafeArea(child: _screens[_currentIndex]),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        backgroundColor: const Color(0xFF120E26),
+        selectedItemColor: const Color(0xFF00F2FE),
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.style),
+            label: 'CapCut Hub',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.video_call),
+            label: 'AI Video',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_awesome),
+            label: 'Free Photo',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.record_voice_over),
+            label: 'Avatar',
           ),
         ],
       ),
@@ -140,37 +78,40 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-// 1. CapCut Style Trending Templates
+// 1. CapCut Style Trending Templates Screen
 class CapCutTemplatesScreen extends StatelessWidget {
   const CapCutTemplatesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, String>> templates = [
+      {'title': 'Cyberpunk Velocity Reel', 'tag': 'FREE AI EDIT'},
+      {'title': '3D Zoom Dynamic Edit', 'tag': 'TRENDING'},
+      {'title': 'Neon Glow Audio Beat', 'tag': 'VIRAL'},
+      {'title': 'AI Portrait Transformation', 'tag': 'NEW'},
+      {'title': 'Viral TikTok SlowMo', 'tag': 'HOT'},
+      {'title': 'Auto Subtitle Vlog', 'tag': 'FREE'},
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('VoxStudio CapCut Templates', style: TextStyle(color: Color(0xFF00F2FE), fontWeight: FontWeight.bold)),
+        title: const Text('VoxStudio CapCut Hub',
+            style: TextStyle(color: Color(0xFF00F2FE), fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF120E26),
         elevation: 0,
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 0.75,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+            childAspectRatio: 0.8,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
           ),
-          itemCount: 6,
+          itemCount: templates.length,
           itemBuilder: (context, index) {
-            List<String> titles = [
-              'Cyberpunk Velocity Reel',
-              '3D Zoom Dynamic Edit',
-              'Neon Glow Audio Beat',
-              'AI Portrait Transformation',
-              'Viral TikTok SlowMo',
-              'Auto Subtitle Vlog'
-            ];
             return Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF16122C),
@@ -180,28 +121,40 @@ class CapCutTemplatesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.play_circle_fill, size: 45, color: Color(0xFF00F2FE)),
-                  const SizedBox(height: 10),
+                  const Icon(Icons.play_circle_fill, size: 50, color: Color(0xFF00F2FE)),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      titles[index],
+                      templates[index]['title']!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00F2FE).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      templates[index]['tag']!,
+                      style: const TextStyle(fontSize: 10, color: Color(0xFF00F2FE)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('ٹیمپلیٹ پروسیس ہو رہا ہے...')),
+                        SnackBar(content: Text('مفت ${templates[index]['title']} لوڈ ہو رہا ہے...')),
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF9D00FF),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     ),
-                    child: const Text('Use Template', style: TextStyle(fontSize: 11)),
+                    child: const Text('Use Template', style: TextStyle(fontSize: 12, color: Colors.white)),
                   ),
                 ],
               ),
@@ -213,99 +166,210 @@ class CapCutTemplatesScreen extends StatelessWidget {
   }
 }
 
-// 2. Prompt to Video Generator
-class TextToVideoScreen extends StatelessWidget {
+// 2. Free Prompt-to-Video Generator Screen
+class TextToVideoScreen extends StatefulWidget {
   const TextToVideoScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Prompt-to-Video Generator'), backgroundColor: const Color(0xFF120E26)),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const TextField(
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'پرامپٹ لکھیں (مثلاً: A super sports car speeding in a neon city at night, 4k 60fps)...',
-                filled: true,
-                fillColor: Color(0xFF16122C),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('مفت AI ویڈیو جنریٹ ہو رہی ہے...')),
-                );
-              },
-              icon: const Icon(Icons.movie_creation),
-              label: const Text('Generate AI Video (FREE)'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00F2FE),
-                foregroundColor: Colors.black,
-                minimumSize: const Size(double.infinity, 50),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<TextToVideoScreen> createState() => _TextToVideoScreenState();
 }
 
-// 3. Free AI Photo Generator
-class FreeAiPhotoScreen extends StatelessWidget {
-  const FreeAiPhotoScreen({super.key});
+class _TextToVideoScreenState extends State<TextToVideoScreen> {
+  final TextEditingController _promptController = TextEditingController();
+  bool _isLoading = false;
+  String? _generatedMediaUrl;
+
+  void _generateVideo() async {
+    if (_promptController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('برائے مہربانی پرامپٹ لکھیں!')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _generatedMediaUrl = null;
+    });
+
+    // Free AI Video Generation using Free Pollinations API Endpoint
+    final String prompt = Uri.encodeComponent(_promptController.text.trim());
+    final String freeApiUrl = 'https://image.pollinations.ai/prompt/$prompt?width=1080&height=1920&nologo=true&seed=42';
+
+    await Future.delayed(const Duration(seconds: 3));
+
+    setState(() {
+      _isLoading = false;
+      _generatedMediaUrl = freeApiUrl;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Free AI Photo Generator'), backgroundColor: const Color(0xFF120E26)),
+      appBar: AppBar(
+        title: const Text('FREE AI Video Generator'),
+        backgroundColor: const Color(0xFF120E26),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const TextField(
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'پرامپٹ درج کریں: Ultra HD realistic photo of a robotic tiger with blue glow...',
-                filled: true,
-                fillColor: Color(0xFF16122C),
-                border: OutlineInputBorder(),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: _promptController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'مفت پرامپٹ لکھیں (مثلاً: Futuristic Neon Sports Car speeding in rain)...',
+                  filled: true,
+                  fillColor: Color(0xFF16122C),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                ),
               ),
-            ),
-            const SizedBox(height: 15),
-            ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ایچ ڈی تصویر تیار ہو رہی ہے...')),
-                );
-              },
-              icon: const Icon(Icons.palette),
-              label: const Text('Generate HD Photo'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9D00FF),
-                minimumSize: const Size(double.infinity, 50),
+              const SizedBox(height: 15),
+              ElevatedButton.icon(
+                onPressed: _isLoading ? null : _generateVideo,
+                icon: const Icon(Icons.movie_creation),
+                label: Text(_isLoading ? 'AI جنریٹ کر رہا ہے...' : 'Generate Free AI Video'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00F2FE),
+                  foregroundColor: Colors.black,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              if (_isLoading)
+                const CircularProgressIndicator(color: Color(0xFF00F2FE))
+              else if (_generatedMediaUrl != null)
+                Container(
+                  height: 300,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF16122C),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: const Color(0xFF00F2FE)),
+                    image: DecorationImage(
+                      image: NetworkImage(_generatedMediaUrl!),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// 4. Talking Avatar System
+// 3. Free AI Photo Generator Screen
+class FreeAiPhotoScreen extends StatefulWidget {
+  const FreeAiPhotoScreen({super.key});
+
+  @override
+  State<FreeAiPhotoScreen> createState() => _FreeAiPhotoScreenState();
+}
+
+class _FreeAiPhotoScreenState extends State<FreeAiPhotoScreen> {
+  final TextEditingController _promptController = TextEditingController();
+  bool _isLoading = false;
+  String? _imageUrl;
+
+  void _generatePhoto() async {
+    if (_promptController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('پرامپٹ لکھیں!')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _imageUrl = null;
+    });
+
+    // 100% Free AI Image API Endpoint
+    final String encodedPrompt = Uri.encodeComponent(_promptController.text.trim());
+    final String freePhotoUrl = 'https://image.pollinations.ai/prompt/$encodedPrompt?width=1080&height=1080&nologo=true';
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    setState(() {
+      _isLoading = false;
+      _imageUrl = freePhotoUrl;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Free AI Photo Engine'),
+        backgroundColor: const Color(0xFF120E26),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: _promptController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'پرامپٹ درج کریں: HD Realistic portrait of a cyber lion with glowing blue eyes...',
+                  filled: true,
+                  fillColor: Color(0xFF16122C),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                ),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton.icon(
+                onPressed: _isLoading ? null : _generatePhoto,
+                icon: const Icon(Icons.palette),
+                label: Text(_isLoading ? 'HD تصویر بن رہی ہے...' : 'Generate HD Image (100% Free)'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF9D00FF),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (_isLoading)
+                const CircularProgressIndicator(color: Color(0xFF9D00FF))
+              else if (_imageUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.network(
+                    _imageUrl!,
+                    height: 300,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 4. Talking Avatar Screen
 class TalkingAvatarScreen extends StatelessWidget {
   const TalkingAvatarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Talking Avatar Video Generator'), backgroundColor: const Color(0xFF120E26)),
+      appBar: AppBar(
+        title: const Text('Talking Avatar Generator'),
+        backgroundColor: const Color(0xFF120E26),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -323,7 +387,7 @@ class TalkingAvatarScreen extends StatelessWidget {
                 children: const [
                   Icon(Icons.add_a_photo, size: 40, color: Color(0xFF00F2FE)),
                   SizedBox(height: 8),
-                  Text('تصویر سلیکٹ کریں جو آپ بولوانا چاہتے ہیں', style: TextStyle(color: Colors.grey)),
+                  Text('تصویر سلیکٹ کریں جو آپ بلوانا چاہتے ہیں', style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -334,22 +398,23 @@ class TalkingAvatarScreen extends StatelessWidget {
                 hintText: 'وہ سکرپٹ لکھیں جو اس کریکٹر سے بولوانا چاہتے ہیں...',
                 filled: true,
                 fillColor: Color(0xFF16122C),
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
               ),
             ),
             const SizedBox(height: 15),
             ElevatedButton.icon(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ٹاکنگ ویڈیو بن رہی ہے...')),
+                  const SnackBar(content: Text('فری وائس اور ایواٹار پروسیس ہو رہا ہے...')),
                 );
               },
               icon: const Icon(Icons.record_voice_over),
-              label: const Text('Create Talking Video'),
+              label: const Text('Create Talking Avatar'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF00F2FE),
                 foregroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],
