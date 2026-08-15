@@ -29,9 +29,9 @@ jobs:
           rm -rf android
           flutter create --platforms=android --org com.voxstudio.app .
 
-      - name: Configure Android Manifest & MinSDK for AdMob
+      - name: Inject Android Settings & AdMob Configuration
         run: |
-          # Ensure AndroidManifest has V2 embedding & AdMob App ID
+          # Create AndroidManifest with V2 Embedding & AdMob App ID
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
@@ -62,9 +62,10 @@ jobs:
           </manifest>
           EOF
 
-          # Set minSdkVersion to 21 in build.gradle
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
-          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
+          # Force MinSDK to 21 across all configuration files
+          echo "flutter.minSdkVersion=21" >> android/local.properties
+          find android/ -name "build.gradle*" -exec sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' {} +
+          find android/ -name "build.gradle*" -exec sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' {} +
 
       - name: Get Dependencies
         run: flutter pub get
