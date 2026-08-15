@@ -19,20 +19,22 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Flutter
+      - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.19.6'
           channel: 'stable'
 
-      - name: Auto-Fix Android Config & Manifest
+      - name: Clean & Get Dependencies
         run: |
-          rm -rf android
-          flutter create --platforms=android --org com.voxstudio.app .
-          echo "flutter.minSdkVersion=21" >> android/local.properties
-          echo "flutter.targetSdkVersion=34" >> android/local.properties
+          flutter clean
+          flutter pub get
 
-      - name: Install Dependencies
-        run: flutter pub get
+      - name: Fix Android Build Settings
+        run: |
+          cd android
+          chmod +x gradlew
+          cd ..
 
       - name: Build APK (Release)
         run: flutter build apk --release --no-tree-shake-icons
@@ -40,6 +42,5 @@ jobs:
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: VoxStudio-Free-AdMob-Release
+          name: VoxStudio-Release-APK
           path: build/app/outputs/flutter-apk/app-release.apk
-          
