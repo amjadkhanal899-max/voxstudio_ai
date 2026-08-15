@@ -24,24 +24,14 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Create Clean Android Structure
+      - name: Re-create Android Project
         run: |
           rm -rf android
           flutter create --platforms=android --org com.voxstudio.app .
 
-      - name: Setup V2 Embedding and AndroidManifest
+      - name: Configure Android Manifest & MinSDK for AdMob
         run: |
-          mkdir -p android/app/src/main/kotlin/com/voxstudio/app
-          
-          cat << 'EOF' > android/app/src/main/kotlin/com/voxstudio/app/MainActivity.kt
-          package com.voxstudio.app
-
-          import io.flutter.embedding.android.FlutterActivity
-
-          class MainActivity: FlutterActivity() {
-          }
-          EOF
-
+          # Ensure AndroidManifest has V2 embedding & AdMob App ID
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
@@ -71,6 +61,10 @@ jobs:
               </application>
           </manifest>
           EOF
+
+          # Set minSdkVersion to 21 in build.gradle
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
 
       - name: Get Dependencies
         run: flutter pub get
